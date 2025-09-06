@@ -14,7 +14,8 @@
     "pullPush": "node scripts/pullPushPrototype.js",
     "bindNote": "node scripts/bindNote.js",
     "bindNotebook": "node scripts/bindNotebook.js",
-    "pullPushByNote": "node scripts/pullPushByNote.js"
+    "pullPushByNote": "node scripts/pullPushByNote.js",
+    "pollChanges": "node scripts/changesPoller.js"
   },
   "keywords": [],
   "author": "",
