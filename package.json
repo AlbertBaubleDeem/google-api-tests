@@ -12,7 +12,8 @@
     "writeToTab": "node scripts/writeToTab.js",
     "replaceTabBody": "node scripts/replaceTabBody.js",
     "pullPush": "node scripts/pullPushPrototype.js",
-    "bindNote": "node scripts/bindNote.js"
+    "bindNote": "node scripts/bindNote.js",
+    "bindNotebook": "node scripts/bindNotebook.js"
   },
   "keywords": [],
   "author": "",
