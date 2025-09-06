@@ -9,7 +9,9 @@
     "startPageToken": "node scripts/startPageToken.js",
     "listChanges": "node scripts/listChanges.js",
     "readTabs": "node scripts/readTabs.js",
-    "writeToTab": "node scripts/writeToTab.js"
+    "writeToTab": "node scripts/writeToTab.js",
+    "replaceTabBody": "node scripts/replaceTabBody.js",
+    "pullPush": "node scripts/pullPushPrototype.js"
   },
   "keywords": [],
   "author": "",
