@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { google } from 'googleapis';
 import fs from 'fs';
-import { getBinding } from '../lib/mapping.js';
+import { getBinding, updateSyncCheckpoint } from '../lib/mapping.js';
 
 // Usage: npm run pullPushByNote -- <noteId> <localPath>
 const [noteId, localPath] = process.argv.slice(2);
@@ -81,7 +81,10 @@ requests.push({ insertText: { location: { tabId, index: 1 }, text: localText } }
 
 // Push
 try {
-	await docs.documents.batchUpdate({ documentId, requestBody: { requests, writeControl: { requiredRevisionId: revisionId } } });
+	const res = await docs.documents.batchUpdate({ documentId, requestBody: { requests, writeControl: { requiredRevisionId: revisionId } } });
+	// Refresh meta to capture new revisionId
+	const meta2 = await docs.documents.get({ documentId });
+	updateSyncCheckpoint(noteId, { lastKnownRevisionId: meta2.data.revisionId, lastSyncTs: new Date().toISOString() });
 	console.log('Pushed new content to note', noteId, 'tab', tabId);
 } catch (err) {
 	console.error('Push failed (possible conflict):', err?.response?.data ?? err?.message ?? err);

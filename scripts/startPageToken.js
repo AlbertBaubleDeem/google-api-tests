@@ -13,7 +13,8 @@ const auth = new google.auth.OAuth2(
 auth.setCredentials(tokens);
 
 const drive = google.drive({ version: 'v3', auth });
-const { data } = await drive.changes.getStartPageToken();
-console.log('startPageToken:', data.startPageToken);
+const { data } = await drive.changes.getStartPageToken({ supportsAllDrives: true });
+console.log('raw:', JSON.stringify(data, null, 2));
+console.log('startPageToken:', data.startPageToken || '(missing)');
 
 

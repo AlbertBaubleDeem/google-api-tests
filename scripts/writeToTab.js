@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { google } from 'googleapis';
 import fs from 'fs';
+import { findNoteIdByFileId, updateSyncCheckpoint } from '../lib/mapping.js';
 
 // Usage: npm run writeToTab -- <documentId> <tabId> <text>
 const [documentId, tabId, ...rest] = process.argv.slice(2);
@@ -42,6 +43,9 @@ const body = {
 
 try {
 	const res = await docs.documents.batchUpdate({ documentId, requestBody: body });
+	const meta2 = await docs.documents.get({ documentId });
+	const noteId = findNoteIdByFileId(documentId);
+	if (noteId) updateSyncCheckpoint(noteId, { lastKnownRevisionId: meta2.data.revisionId, lastSyncTs: new Date().toISOString() });
 	console.log('OK: wrote to tab', tabId, 'newRevisionId:', res.data.writeControl?.requiredRevisionId ?? '(n/a)');
 } catch (err) {
 	console.error('Write failed:', err?.response?.data ?? err?.message ?? err);

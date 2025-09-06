@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { google } from 'googleapis';
+import { findNoteIdByFileId, updateSyncCheckpoint } from '../lib/mapping.js';
 import fs from 'fs';
 
 // Usage: npm run replaceTabBody -- <documentId> <tabId> <textFilePath>
@@ -76,6 +77,9 @@ const bodyReq = { requests, writeControl: { requiredRevisionId: revisionId } };
 
 try {
 	await docs.documents.batchUpdate({ documentId, requestBody: bodyReq });
+	const meta2 = await docs.documents.get({ documentId });
+	const noteId = findNoteIdByFileId(documentId);
+	if (noteId) updateSyncCheckpoint(noteId, { lastKnownRevisionId: meta2.data.revisionId, lastSyncTs: new Date().toISOString() });
 	console.log('OK: replaced body for tab', tabId);
 } catch (err) {
 	console.error('Replace failed:', err?.response?.data ?? err?.message ?? err);
