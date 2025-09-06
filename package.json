@@ -17,7 +17,8 @@
     "pullPushByNote": "node scripts/pullPushByNote.js",
     "pollChanges": "node scripts/changesPoller.js",
     "formatProbe": "node scripts/formatProbe.js",
-    "formatExplicit": "node scripts/formatExplicit.js"
+    "formatExplicit": "node scripts/formatExplicit.js",
+    "mdToDocs": "node scripts/mdToDocs.js"
   },
   "keywords": [],
   "author": "",
