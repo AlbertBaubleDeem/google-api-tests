@@ -21,6 +21,7 @@ Minimal Node scripts for Drive/Docs tests.
 - npm run bindNote -- <noteId> <docId> <tabId>: bind a note to a Tab
 - npm run pullPushByNote -- <noteId> <filePath>: mapping-aware pull→push
 - npm run pollChanges [--watch] [--interval=60]: baseline changes poller that writes to `local/{noteId}.md`
+- npm run mdToDocs -- <docId> <tabId> <markdownFile>: convert minimal MD (H1–H3, bold, italic) to Docs using `config/md-mapping.json`
 
 ## Env
 - See .env for variables
@@ -40,6 +41,7 @@ Minimal Node scripts for Drive/Docs tests.
 - Mapping
   - Local: `mapping.json` stores note→{fileId, tabId, lastKnownRevisionId, lastSyncTs} and notebook→{fileId}
   - Planned: mirror noteId in Drive `appProperties` for robustness across move/rename
+  - MD→Docs mapping: `config/md-mapping.json` (user-editable) governs headings and inline styling
 
 ## Next steps
 - Integrate poller and write flows into plugin skeleton

@@ -21,14 +21,23 @@ const auth = new google.auth.OAuth2(
 auth.setCredentials(tokens);
 const docs = google.docs({ version: 'v1', auth });
 
+// Load mapping config (user-editable)
+let mapping = null;
+try {
+    mapping = JSON.parse(fs.readFileSync(new URL('../config/md-mapping.json', import.meta.url)));
+} catch {
+    mapping = { headings: { h1: 'HEADING_1', h2: 'HEADING_2', h3: 'HEADING_3', default: 'NORMAL_TEXT' } };
+}
+
 // Parse headings and inline bold/italic, generating plain text and style ranges
 const lines = md.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
 
 function paragraphStyleFor(line) {
-	if (/^#\s+/.test(line)) return 'HEADING_1';
-	if (/^##\s+/.test(line)) return 'HEADING_2';
-	if (/^###\s+/.test(line)) return 'HEADING_3';
-	return 'NORMAL_TEXT';
+    const h = mapping.headings || {};
+    if (/^#\s+/.test(line)) return h.h1 || 'HEADING_1';
+    if (/^##\s+/.test(line)) return h.h2 || 'HEADING_2';
+    if (/^###\s+/.test(line)) return h.h3 || 'HEADING_3';
+    return h.default || 'NORMAL_TEXT';
 }
 
 function stripHeadingMarkers(line) {
