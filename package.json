@@ -15,7 +15,8 @@
     "bindNote": "node scripts/bindNote.js",
     "bindNotebook": "node scripts/bindNotebook.js",
     "pullPushByNote": "node scripts/pullPushByNote.js",
-    "pollChanges": "node scripts/changesPoller.js"
+    "pollChanges": "node scripts/changesPoller.js",
+    "formatProbe": "node scripts/formatProbe.js"
   },
   "keywords": [],
   "author": "",
