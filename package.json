@@ -13,7 +13,8 @@
     "replaceTabBody": "node scripts/replaceTabBody.js",
     "pullPush": "node scripts/pullPushPrototype.js",
     "bindNote": "node scripts/bindNote.js",
-    "bindNotebook": "node scripts/bindNotebook.js"
+    "bindNotebook": "node scripts/bindNotebook.js",
+    "pullPushByNote": "node scripts/pullPushByNote.js"
   },
   "keywords": [],
   "author": "",
