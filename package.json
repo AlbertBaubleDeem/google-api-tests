@@ -16,7 +16,8 @@
     "bindNotebook": "node scripts/bindNotebook.js",
     "pullPushByNote": "node scripts/pullPushByNote.js",
     "pollChanges": "node scripts/changesPoller.js",
-    "formatProbe": "node scripts/formatProbe.js"
+    "formatProbe": "node scripts/formatProbe.js",
+    "formatExplicit": "node scripts/formatExplicit.js"
   },
   "keywords": [],
   "author": "",
