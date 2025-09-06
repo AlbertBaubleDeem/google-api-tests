@@ -74,8 +74,15 @@ async function processOnce() {
 	while (pageToken) {
 		const { data } = await drive.changes.list({
 			pageToken,
-			fields: 'newStartPageToken,nextPageToken,changes(fileId,removed,file(id,name,appProperties,modifiedTime))',
+			fields: 'newStartPageToken,nextPageToken,changes(fileId,removed,time,file(id,name,appProperties,modifiedTime))',
+			supportsAllDrives: true,
+			includeItemsFromAllDrives: true,
 		});
+		if ((data.changes || []).length === 0) {
+			// No changes in this page
+		} else {
+			console.log('Changes count:', data.changes.length, 'pageToken:', pageToken);
+		}
 		for (const ch of data.changes || []) {
 			const fileId = ch.fileId;
 			const noteId = findNoteIdByFileId(fileId);
