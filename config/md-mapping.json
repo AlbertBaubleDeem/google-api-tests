@@ -1,7 +1,10 @@
 {
   "title": {
     "useTitle": true,
-    "source": "first_h1"
+    "source": "first_line"
+  },
+  "subtitle": {
+    "mode": "italic"
   },
   "headings": {
     "h1": "HEADING_1",

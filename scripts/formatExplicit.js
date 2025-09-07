@@ -19,6 +19,8 @@ const styleMap = {
 	'H3': 'HEADING_3',
 	'P': 'NORMAL_TEXT',
 	'NORMAL': 'NORMAL_TEXT',
+    'TITLE': 'TITLE',
+    'SUBTITLE': 'SUBTITLE',
 };
 const styles = stylesInp.map(s => styleMap[s] || 'NORMAL_TEXT');
 

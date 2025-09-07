@@ -3,6 +3,7 @@ import { google } from 'googleapis';
 import fs from 'fs';
 import path from 'path';
 import { findNoteIdByFileId, getBinding, markAccessLost, updateSyncCheckpoint } from '../lib/mapping.js';
+const mappingCfg = JSON.parse(fs.readFileSync(new URL('../config/md-mapping.json', import.meta.url)));
 
 // Usage: npm run pollChanges [--watch] [--interval=60]
 const args = process.argv.slice(2);
@@ -37,10 +38,10 @@ function saveState(s) {
 async function initIfNeeded() {
 	const st = loadState();
 	if (st.pageToken) return st.pageToken;
-	const { data } = await drive.changes.getStartPageToken({ supportsAllDrives: true });
-	const pageToken = data.startPageToken;
+	const startRes = await drive.changes.getStartPageToken({ supportsAllDrives: true });
+	const pageToken = startRes.data.startPageToken;
 	saveState({ pageToken });
-	console.log('Initialized pageToken:', pageToken);
+	console.log('Initialized pageToken:', pageToken, '(edits before this token will not appear)');
 	return null; // indicate first-run init done
 }
 
@@ -50,6 +51,48 @@ function extractTabText(tab) {
 	let out = '';
 	for (const el of body.content) {
 		for (const se of el.paragraph?.elements || []) out += se.textRun?.content || '';
+	}
+	return out;
+}
+
+function extractParagraphs(tab) {
+	const body = tab.documentTab?.body;
+	if (!body?.content) return [];
+	const paras = [];
+	for (const el of body.content) {
+		if (el.paragraph) {
+			const runs = [];
+			for (const se of el.paragraph.elements || []) {
+				const t = se.textRun?.content || '';
+				const ts = se.textRun?.textStyle || {};
+				runs.push({ text: t, bold: !!ts.bold, italic: !!ts.italic });
+			}
+			const style = el.paragraph.paragraphStyle?.namedStyleType || 'NORMAL_TEXT';
+			paras.push({ runs, style });
+		}
+	}
+	return paras;
+}
+
+function runsToMarkdown(runs, inlineCfg) {
+	const boldMarker = inlineCfg?.bold?.marker || '**';
+	const italicMarker = inlineCfg?.italic?.marker || '*';
+	let out = '';
+	for (const r of runs) {
+		let chunk = (r.text || '').replace(/\n+$/,'');
+		if (!chunk) { out += (r.text || ''); continue; }
+		if (r.bold && r.italic) {
+			out += `${boldMarker}${italicMarker}${chunk}${italicMarker}${boldMarker}`;
+		} else if (r.bold) {
+			out += `${boldMarker}${chunk}${boldMarker}`;
+		} else if (r.italic) {
+			out += `${italicMarker}${chunk}${italicMarker}`;
+		} else {
+			out += chunk;
+		}
+		// Preserve original trailing newlines between runs if any
+		const trailingNewlines = (r.text || '').match(/\n+$/);
+		if (trailingNewlines) out += trailingNewlines[0];
 	}
 	return out;
 }
@@ -98,9 +141,25 @@ async function processOnce() {
 			const meta = await docs.documents.get({ documentId: fileId, includeTabsContent: true });
 			const tab = findTabById(meta.data, binding.tabId);
 			if (!tab) continue;
-			const text = extractTabText(tab);
+			const paras = extractParagraphs(tab);
+			const titlePara = paras.find(p => p.style === 'TITLE');
+			const titleText = titlePara ? runsToMarkdown(titlePara.runs, mappingCfg.inline).replace(/\n+$/,'').trim() : '';
+			const contentLines = [];
+			if (titleText) contentLines.push(`# ${titleText}`);
+			let usedSubtitle = false;
+			for (const p of paras) {
+				if (p === titlePara) continue;
+				let line = runsToMarkdown(p.runs, mappingCfg.inline).replace(/\n+$/,'');
+				// Map Docs Subtitle to italic line directly under title when configured
+				if (!usedSubtitle && mappingCfg?.subtitle?.mode === 'italic' && p.style === 'SUBTITLE') {
+					line = `_${line}_`;
+					usedSubtitle = true;
+				}
+				contentLines.push(line);
+			}
+			const mdOut = contentLines.join('\n');
 			const targetPath = path.join(localDir, `${noteId}.md`);
-			fs.writeFileSync(targetPath, text);
+			fs.writeFileSync(targetPath, mdOut);
 			updateSyncCheckpoint(noteId, { lastKnownRevisionId: meta.data.revisionId, lastSyncTs: new Date().toISOString() });
 			console.log('Pulled update for note', noteId, '->', targetPath);
 		}

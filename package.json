@@ -18,7 +18,9 @@
     "pollChanges": "node scripts/changesPoller.js",
     "formatProbe": "node scripts/formatProbe.js",
     "formatExplicit": "node scripts/formatExplicit.js",
-    "mdToDocs": "node scripts/mdToDocs.js"
+    "mdToDocs": "node scripts/mdToDocs.js",
+    "codeBlockProbe": "node scripts/codeBlockProbe.js",
+    "appendToTabEnd": "node scripts/appendToTabEnd.js"
   },
   "keywords": [],
   "author": "",

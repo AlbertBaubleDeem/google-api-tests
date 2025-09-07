@@ -50,10 +50,21 @@ const paraRanges = []; // { start, end, style }
 const textRanges = []; // { start, end, bold?, italic? }
 let cursor = 0;
 
+let inFence = false;
+let fenceLang = '';
+
 for (let i = 0; i < lines.length; i++) {
 	const original = lines[i];
-	const namedStyleType = paragraphStyleFor(original);
-	let line = stripHeadingMarkers(original);
+	// Fenced code block toggle
+	const fenceMatch = original.match(/^```\s*([a-zA-Z0-9_-]+)?\s*$/);
+	if (fenceMatch) {
+		inFence = !inFence;
+		fenceLang = inFence ? (fenceMatch[1] || '') : '';
+		continue; // do not emit the backtick line itself
+	}
+
+	const namedStyleType = inFence ? 'CODEBLOCK' : paragraphStyleFor(original);
+	let line = inFence ? original : stripHeadingMarkers(original);
 	// Inline: bold **text** and italic *text* or _text_
 	// Simple non-nested handling
 	const applyInline = (re, updater) => {
@@ -82,6 +93,11 @@ for (let i = 0; i < lines.length; i++) {
 	cursor = end + 1;
 }
 
+// Enforce first line as Docs Title when configured
+if (mapping?.title?.useTitle && paraRanges.length > 0) {
+	paraRanges[0].style = 'TITLE';
+}
+
 // Fetch revision and clear target tab content, insert plain text, then apply styles
 const meta = await docs.documents.get({ documentId, includeTabsContent: true });
 const revisionId = meta.data.revisionId;
@@ -94,14 +110,37 @@ if (endIndex > 1) reqs.push({ deleteContentRange: { range: { tabId, startIndex: 
 reqs.push({ insertText: { location: { tabId, index: 1 }, text: plain } });
 await docs.documents.batchUpdate({ documentId, requestBody: { requests: reqs, writeControl: { requiredRevisionId: revisionId } } });
 
+// Apply paragraph styles (first line enforced to TITLE; if second line is italic and mapping.subtitle.mode=italic, set SUBTITLE)
+if (mapping?.title?.useTitle && paraRanges.length > 0) {
+    paraRanges[0].style = 'TITLE';
+}
+if (mapping?.subtitle?.mode === 'italic' && paraRanges.length > 1) {
+    // Detect italic via textRanges that fully cover the second line
+    const second = paraRanges[1];
+    const fullItalic = textRanges.some(r => r.italic && r.start <= second.start && r.end >= second.end);
+    if (fullItalic) paraRanges[1].style = 'SUBTITLE';
+}
+
 // Apply paragraph styles
 const paraReqs = paraRanges
 	.filter(r => r.end >= r.start)
 	.map(r => ({
 		updateParagraphStyle: {
 			range: { tabId, startIndex: r.start + 1, endIndex: r.end + 1 }, // +1 due to insertion starting at index 1
-			paragraphStyle: { namedStyleType: r.style },
-			fields: 'namedStyleType',
+			paragraphStyle: r.style === 'CODEBLOCK'
+				? {
+					shading: { backgroundColor: { color: { rgbColor: { red: 0.96, green: 0.96, blue: 0.96 } } } },
+					borderLeft: {
+						width: { magnitude: 1, unit: 'PT' },
+						padding: { magnitude: 6, unit: 'PT' },
+						color: { color: { rgbColor: { red: 0.8, green: 0.8, blue: 0.8 } } },
+						dashStyle: 'SOLID',
+					},
+				}
+				: { namedStyleType: r.style },
+			fields: r.style === 'CODEBLOCK'
+				? 'shading,borderLeft'
+				: 'namedStyleType',
 		},
 	}))
 ;
@@ -114,7 +153,18 @@ const textReqs = textRanges.map(r => ({
 	},
 }));
 
-const allStyleReqs = [...paraReqs, ...textReqs];
+// Enforce monospace font for CODEBLOCK paragraphs
+const codeMonoReqs = paraRanges
+	.filter(r => r.style === 'CODEBLOCK')
+	.map(r => ({
+		updateTextStyle: {
+			range: { tabId, startIndex: r.start + 1, endIndex: r.end + 1 },
+			textStyle: { weightedFontFamily: { fontFamily: 'Roboto Mono' } },
+			fields: 'weightedFontFamily',
+		},
+	}));
+
+const allStyleReqs = [...paraReqs, ...textReqs, ...codeMonoReqs];
 if (allStyleReqs.length) await docs.documents.batchUpdate({ documentId, requestBody: { requests: allStyleReqs } });
 
 console.log('Applied md→Docs styles. Paragraphs:', paraRanges.length, 'Text ranges:', textRanges.length);
