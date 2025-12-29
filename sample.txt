@@ -1,0 +1,3 @@
+# Heading 1 from Joplin Sync
+## Heading 2 from Joplin Sync
+Some text to fill in the text body from Joplin sync. Yada yada yada yada....
