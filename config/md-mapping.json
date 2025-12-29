@@ -16,6 +16,11 @@
     "bold": { "marker": "**", "textStyle": { "bold": true } },
     "italic": { "marker": "*", "textStyle": { "italic": true } }
   },
+  "code": {
+    "inline": { "marker": "`" },
+    "block": true,
+    "monoFont": "Roboto Mono"
+  },
   "paragraph": {
     "blockquote": {
       "prefix": ">",

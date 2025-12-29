@@ -20,7 +20,8 @@
     "formatExplicit": "node scripts/formatExplicit.js",
     "mdToDocs": "node scripts/mdToDocs.js",
     "codeBlockProbe": "node scripts/codeBlockProbe.js",
-    "appendToTabEnd": "node scripts/appendToTabEnd.js"
+    "appendToTabEnd": "node scripts/appendToTabEnd.js",
+    "insertImage": "node scripts/insertImage.js"
   },
   "keywords": [],
   "author": "",

@@ -11,3 +11,5 @@ bindNote(noteId, { fileId, tabId, lastSyncTs: new Date().toISOString() });
 console.log('binding:', getBinding(noteId));
 
 
+
+

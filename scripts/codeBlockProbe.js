@@ -58,3 +58,5 @@ for (const el of tab?.documentTab?.body?.content || []) {
 console.log('Paragraphs summary:', pars.slice(0, 6));
 
 
+
+
