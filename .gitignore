@@ -3,3 +3,7 @@ node_modules
 .token.json
 *.backup*
 .token.json*
+
+# GCS credentials
+config/gcs-credentials.json
+*-credentials.json
