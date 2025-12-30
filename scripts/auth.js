@@ -19,8 +19,9 @@ const oauth2Client = new google.auth.OAuth2(
 
 const scopes = [
 	'https://www.googleapis.com/auth/drive.file',
-	'https://www.googleapis.com/auth/drive',  // Added for sharing permissions
+	'https://www.googleapis.com/auth/drive',
 	'https://www.googleapis.com/auth/documents',
+	'https://www.googleapis.com/auth/devstorage.full_control',  // GCS access
 ];
 
 const url = oauth2Client.generateAuthUrl({
