@@ -13,6 +13,7 @@
  * Requires: Valid OAuth tokens in .token.json (run: npm run auth)
  */
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { getAuth, getDocs, getDrive } from '../lib/getAuth.js';
 
@@ -36,31 +37,60 @@ const auth = getAuth();
 const docs = getDocs(auth);
 const drive = getDrive(auth);
 
-// Test markdown
+// Test markdown with multiline code block and numbered lists
 const testMarkdown = `# Integration Test Document
 
-*A test subtitle*
+_A test subtitle_
 
 This is a paragraph with **bold** and *italic* text.
 
 ## Section 1
 
-Here's a list:
+Here's an unordered list:
 
 - First item
 - Second item
 - Third item
 
+And here's a numbered list:
+
+1. Step one
+2. Step two
+3. Step three
+
 ## Section 2
 
-Some code:
+Some code with multiple lines:
 
 \`\`\`javascript
-const greeting = "Hello, World!";
-console.log(greeting);
+function greet(name) {
+  const greeting = "Hello, " + name + "!";
+  console.log(greeting);
+  return greeting;
+}
+
+greet("World");
 \`\`\`
 
+Text after the code block.
+
+## Section 3: Inline Code
+
+This paragraph has \`inline code\` followed by normal text.
+
+Another with \`multiple\` inline \`code\` segments mixed in.
+
+Normal paragraph with no code at all.
+
 The end.`;
+
+// Save original markdown to temp file
+const tempDir = path.join(__dirname, '../local');
+if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+const originalFile = path.join(tempDir, 'test-original.md');
+const roundtripFile = path.join(tempDir, 'test-roundtrip.md');
+fs.writeFileSync(originalFile, testMarkdown);
+console.log(`Saved original to: ${originalFile}`);
 
 let testDocId = null;
 
@@ -123,6 +153,36 @@ try {
   const pullRes = await docs.documents.get({ documentId: testDocId });
   const pulledDoc = pullRes.data;
   
+  // Verbose font logging to debug inline code vs code block detection
+  console.log('\n=== VERBOSE FONT LOGGING ===');
+  let paraIndex = 0;
+  for (const el of pulledDoc.body?.content || []) {
+    if (el.paragraph) {
+      const textPreview = (el.paragraph.elements || [])
+        .map(e => e.textRun?.content || '[obj]')
+        .join('')
+        .substring(0, 50)
+        .replace(/\n/g, '\\n');
+      const ps = el.paragraph.paragraphStyle || {};
+      console.log(`\n--- Paragraph ${paraIndex}: "${textPreview}..." ---`);
+      console.log(`  paragraphStyle: shading=${ps.shading ? 'YES' : 'no'}, borderLeft=${ps.borderLeft ? 'YES' : 'no'}, namedStyle=${ps.namedStyleType || 'none'}`);
+      
+      for (const run of el.paragraph.elements || []) {
+        if (run.textRun) {
+          const text = (run.textRun.content || '').substring(0, 30).replace(/\n/g, '\\n');
+          const font = run.textRun.textStyle?.weightedFontFamily?.fontFamily || 'EMPTY';
+          const bold = run.textRun.textStyle?.bold ? 'B' : '';
+          const italic = run.textRun.textStyle?.italic ? 'I' : '';
+          console.log(`    "${text}" => font: "${font}" ${bold}${italic}`);
+        } else if (run.inlineObjectElement) {
+          console.log(`    [inline object: ${run.inlineObjectElement.inlineObjectId}]`);
+        }
+      }
+      paraIndex++;
+    }
+  }
+  console.log('\n=== END FONT LOGGING ===\n');
+  
   // Step 5: Convert back to markdown
   console.log('5. Converting Docs structure back to markdown...');
   const pulledIR = docsToIR({
@@ -133,6 +193,10 @@ try {
   
   const pulledMarkdown = irToMarkdown(pulledIR);
   console.log(`   Pulled MD: ${pulledMarkdown.length} chars`);
+  
+  // Save roundtrip markdown to temp file
+  fs.writeFileSync(roundtripFile, pulledMarkdown);
+  console.log(`   Saved roundtrip to: ${roundtripFile}`);
 
   // Step 6: Compare
   console.log('6. Comparing roundtrip...');
