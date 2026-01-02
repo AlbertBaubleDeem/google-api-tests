@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm run test:converter && npm run test:roundtrip",
+    "test:converter": "node integration/converter-roundtrip.js",
+    "test:roundtrip": "node integration/push-pull-roundtrip.js",
     "auth": "node scripts/auth.js",
     "startPageToken": "node scripts/startPageToken.js",
     "listChanges": "node scripts/listChanges.js",
