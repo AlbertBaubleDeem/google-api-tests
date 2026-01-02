@@ -112,6 +112,12 @@ try {
   }
   console.log(`   Applied ${styleReqs.length} style requests`);
 
+  // Pause for visual inspection
+  console.log('\n>>> INSPECT THE DOCUMENT <<<');
+  console.log(`   https://docs.google.com/document/d/${testDocId}/edit`);
+  console.log('\nWaiting 30 seconds for you to inspect... (or Ctrl+C to abort)');
+  await new Promise(resolve => setTimeout(resolve, 30000));
+
   // Step 4: Pull from Google Doc
   console.log('4. Pulling from Google Doc...');
   const pullRes = await docs.documents.get({ documentId: testDocId });
