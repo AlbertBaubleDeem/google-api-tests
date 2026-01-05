@@ -36,29 +36,34 @@ auth.setCredentials(tokens);
 
 const drive = google.drive({ version: 'v3', auth });
 
-async function findSyncedDocs() {
-  console.log('\nSearching for docs with joplinNoteId app property...\n');
+async function findSyncedDocs(folderIds) {
+  console.log('\nSearching for docs in sync folders...\n');
   
-  const files = [];
-  let pageToken = undefined;
+  const allFiles = [];
   
-  do {
-    const response = await drive.files.list({
-      q: `appProperties has { key='joplinNoteId' } and trashed=false`,
-      fields: 'nextPageToken, files(id, name, mimeType, createdTime, modifiedTime, appProperties, webViewLink)',
-      includeItemsFromAllDrives: true,
-      supportsAllDrives: true,
-      pageSize: 100,
-      pageToken,
-    });
+  for (const folderId of folderIds) {
+    let pageToken = undefined;
     
-    if (response.data.files) {
-      files.push(...response.data.files);
-    }
-    pageToken = response.data.nextPageToken;
-  } while (pageToken);
+    do {
+      const response = await drive.files.list({
+        q: `'${folderId}' in parents and mimeType='application/vnd.google-apps.document' and trashed=false`,
+        fields: 'nextPageToken, files(id, name, mimeType, createdTime, modifiedTime, appProperties, webViewLink)',
+        includeItemsFromAllDrives: true,
+        supportsAllDrives: true,
+        pageSize: 100,
+        pageToken,
+      });
+      
+      if (response.data.files) {
+        // Only include files that have joplinNoteId property
+        const syncedFiles = response.data.files.filter(f => f.appProperties?.joplinNoteId);
+        allFiles.push(...syncedFiles);
+      }
+      pageToken = response.data.nextPageToken;
+    } while (pageToken);
+  }
   
-  return files;
+  return allFiles;
 }
 
 async function findSyncFolders() {
@@ -141,8 +146,9 @@ async function main() {
     console.log(`   App Properties: ${JSON.stringify(folder.appProperties)}`);
   }
   
-  // Find synced docs
-  const docs = await findSyncedDocs();
+  // Find synced docs (search within discovered folders)
+  const folderIds = folders.map(f => f.id);
+  const docs = await findSyncedDocs(folderIds);
   
   console.log(`\n${'─'.repeat(70)}`);
   console.log(`SYNCED DOCUMENTS (${docs.length} found)`);
