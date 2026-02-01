@@ -7,3 +7,7 @@ node_modules
 # GCS credentials
 config/gcs-credentials.json
 *-credentials.json
+
+# User-specific state files (use *.example as templates)
+mapping.json
+changes.state.json
