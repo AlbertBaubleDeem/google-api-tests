@@ -25,7 +25,9 @@
     "appendToTabEnd": "node scripts/appendToTabEnd.js",
     "insertImage": "node scripts/insertImage.js",
     "uploadToGCS": "node scripts/uploadToGCS.js",
-    "insertImageGCS": "node scripts/insertImageGCS.js"
+    "insertImageGCS": "node scripts/insertImageGCS.js",
+    "testTableRoundtrip": "node scripts/testTableRoundtrip.js",
+    "testTableEdgeCases": "node scripts/testTableApiEdgeCases.js"
   },
   "keywords": [],
   "author": "",
