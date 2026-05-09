@@ -27,7 +27,10 @@
     "uploadToGCS": "node scripts/uploadToGCS.js",
     "insertImageGCS": "node scripts/insertImageGCS.js",
     "testTableRoundtrip": "node scripts/testTableRoundtrip.js",
-    "testTableEdgeCases": "node scripts/testTableApiEdgeCases.js"
+    "testTableEdgeCases": "node scripts/testTableApiEdgeCases.js",
+    "createList": "node scripts/createList.js",
+    "testListRoundtrip": "node scripts/testListRoundtrip.js",
+    "testWhitespace": "node scripts/testWhitespaceNormalization.js"
   },
   "keywords": [],
   "author": "",
