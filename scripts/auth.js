@@ -22,6 +22,10 @@ const scopes = [
 	'https://www.googleapis.com/auth/drive',
 	'https://www.googleapis.com/auth/documents',
 	'https://www.googleapis.com/auth/devstorage.full_control',  // GCS access
+	// Added for chip rich-link probing: Docs may need to validate the linked
+	// resource server-side, which requires the appropriate scope.
+	'https://www.googleapis.com/auth/calendar.readonly',
+	'https://www.googleapis.com/auth/youtube.readonly',
 ];
 
 const url = oauth2Client.generateAuthUrl({
